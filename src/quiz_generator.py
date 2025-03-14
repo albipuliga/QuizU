@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import streamlit as st
 
-from config import init_gemini
+from utils import init_gemini
 
 
 def generate_questions(content: str, num_questions: int = 5) -> List[Dict]:
