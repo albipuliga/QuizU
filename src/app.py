@@ -6,7 +6,7 @@ from quiz_generator import display_question, generate_questions
 
 def main():
     """Main application entry point."""
-    st.set_page_config(page_title="QuizU", page_icon="✏️", layout="wide")
+    st.set_page_config(page_title="QuizU", page_icon="📚", layout="wide")
 
     st.title("QuizU 📚")
     st.html("""
