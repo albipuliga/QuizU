@@ -87,6 +87,12 @@ Contributions are welcome! To contribute:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## 👥 Inspiration
+
+This project was inspired by friend [Daniel](https://github.com/RestartDK)'s version of this concept, which you can find [here](https://mintlearn.vercel.app/).
+
+Let me know which one you like more!
+
 ## 📧 Contact
 
 [Alberto Puliga - Github](https://github.com/albertopuliga)
