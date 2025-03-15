@@ -40,6 +40,10 @@ def main():
         default=["Multiple Choice"],
     )
 
+    if not question_types:
+        st.error("Please select at least one question type")
+        return
+
     # Process button
     if st.button("Generate Quiz", type="primary"):
         content = get_content(uploaded_files, text_input)
@@ -64,14 +68,38 @@ def main():
 
     # Always display questions if they exist in session state
     if st.session_state.quiz_questions:
-        st.subheader("Your Quiz")
         st.markdown("---")
+        st.subheader("Questions")
 
+        # Add quiz progress tracker
+        correct_count = sum(
+            1
+            for i in range(1, len(st.session_state.quiz_questions) + 1)
+            if f"correct_{i}" in st.session_state and st.session_state[f"correct_{i}"]
+        )
+        total_questions = len(st.session_state.quiz_questions)
+
+        # Progress bar and score
+        progress = correct_count / total_questions if total_questions > 0 else 0
+        st.progress(progress)
+        st.write(f"Score: {correct_count}/{total_questions} ({int(progress * 100)}%)")
+
+        # Display all questions
         for i, question in enumerate(st.session_state.quiz_questions, 1):
             display_question(i, question)
 
-        # Add option to clear current quiz
-        if st.button("Clear Quiz"):
+        if st.button("Reset All Answers"):
+            # Clear only answer-related session state
+            for key in list(st.session_state.keys()):
+                if key.startswith(("answer_", "feedback_", "correct_", "radio_")):
+                    del st.session_state[key]
+            st.rerun()
+
+        if st.button("Clear Quiz", type="primary"):
+            # Clear all quiz-related session state
+            for key in list(st.session_state.keys()):
+                if key.startswith(("answer_", "feedback_", "correct_", "radio_")):
+                    del st.session_state[key]
             st.session_state.quiz_questions = []
             st.rerun()
 

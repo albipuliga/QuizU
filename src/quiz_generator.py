@@ -22,6 +22,7 @@ def validate_questions(questions):
         if not isinstance(question, dict):
             return False
 
+        # Check for required fields based on question type
         if (
             "question" not in question
             or "type" not in question
@@ -29,9 +30,11 @@ def validate_questions(questions):
         ):
             return False
 
+        # Multiple choice questions require options
         if question["type"] == "multiple_choice" and "options" not in question:
             return False
 
+        # For true_false questions, add default options if missing
         if question["type"] == "true_false" and "options" not in question:
             question["options"] = ["True", "False"]
 
@@ -57,6 +60,8 @@ def generate_questions(
 
     # Map UI options to internal types
     type_mapping = {"Multiple Choice": "multiple_choice", "True/False": "true_false"}
+
+    # Convert selected types to internal format
     selected_types = [type_mapping[t] for t in question_types]
 
     prompt = f"""Generate {num_questions} quiz questions based on the following content. Include the following question types: {selected_types}.
@@ -82,6 +87,7 @@ def generate_questions(
         # Remove the markdown code block markers if present
         json_str = response_text.replace("```json", "").replace("```", "").strip()
 
+        # Parse the JSON string into a Python object
         questions = json.loads(json_str)
 
         if validate_questions(questions):
@@ -105,17 +111,45 @@ def display_question(index: int, question: Dict):
     question_key = f"question_{index}"
     answer_key = f"answer_{index}"
     feedback_key = f"feedback_{index}"
+    correct_key = f"correct_{index}"
 
-    with st.expander(f"Question {index}", expanded=True):
-        st.write(question["question"])
+    # Initialize session state for this question if not already done
+    if answer_key not in st.session_state:
+        st.session_state[answer_key] = None
 
-        # Initialize session state for this question if not already done
-        if answer_key not in st.session_state:
-            st.session_state[answer_key] = None
+    if feedback_key not in st.session_state:
+        st.session_state[feedback_key] = False
 
-        if feedback_key not in st.session_state:
-            st.session_state[feedback_key] = False
+    if correct_key not in st.session_state:
+        st.session_state[correct_key] = False
 
+    # Determine if question should be expanded
+    # Keep expanded if: not yet answered, or answered incorrectly
+    should_expand = (
+        not st.session_state[feedback_key] or not st.session_state[correct_key]
+    )
+
+    # Create custom expander title with visual indicator for correct answers
+    if st.session_state[feedback_key] and st.session_state[correct_key]:
+        expander_title = f"✅ Question {index} (Correct)"
+    else:
+        expander_title = f"Question {index}"
+
+    with st.expander(expander_title, expanded=should_expand):
+        # Apply custom styling based on question state
+        if st.session_state[feedback_key] and st.session_state[correct_key]:
+            st.markdown(
+                f"""
+                <div style="border-left: 4px solid #28a745; padding-left: 10px;">
+                    <p>{question["question"]}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.write(question["question"])
+
+        # Get options based on question type
         if question["type"] == "multiple_choice":
             options = question["options"]
         else:  # true_false
@@ -126,25 +160,49 @@ def display_question(index: int, question: Dict):
             ].lower() in ["true", "false"]:
                 question["correct_answer"] = question["correct_answer"].capitalize()
 
+        # Display options with radio button
         selected_answer = st.radio(
             "Select your answer:", options, key=f"radio_{index}", index=None
         )
+
+        # Store selected answer in session state
         st.session_state[answer_key] = selected_answer
 
-        # Use a unique key for the button and check if it's pressed
-        button_key = f"check_button_{index}"
-        if st.button("Check Answer", key=button_key):
-            st.session_state[feedback_key] = True
+        # Only show check button if feedback hasn't been given yet
+        if not st.session_state[feedback_key]:
+            button_key = f"check_button_{index}"
+            if st.button("Check Answer", key=button_key):
+                st.session_state[feedback_key] = True
+                # Check if answer is correct and update state
+                if st.session_state[answer_key] == question["correct_answer"]:
+                    st.session_state[correct_key] = True
+                    st.success("Correct! 🎉")
+                    # Force a rerun to collapse the expander
+                    st.rerun()
+                else:
+                    st.session_state[correct_key] = False
+                    st.error(
+                        f"Incorrect. The correct answer is: {question['correct_answer']}"
+                    )
 
-        # Display feedback if button was pressed
-        if st.session_state[feedback_key]:
-            if st.session_state[answer_key] == question["correct_answer"]:
+                    # Only show explanation for incorrect answers
+                    if "explanation" in question:
+                        st.write(f"Explanation: {question['explanation']}")
+        else:
+            # Show persistent feedback for questions that were already checked
+            if st.session_state[correct_key]:
                 st.success("Correct! 🎉")
             else:
-                st.error(f"The correct answer is: {question['correct_answer']}")
+                st.error(
+                    f"Incorrect. The correct answer is: {question['correct_answer']}"
+                )
 
-            # Show explanation if it exists
-            if "explanation" in question:
-                st.write(f"Explanation: {question['explanation']}")
-            else:
-                st.write("No explanation provided.")
+                # Only show explanation for incorrect answers
+                if "explanation" in question:
+                    st.write(f"Explanation: {question['explanation']}")
+
+        # Add a "Try Again" button for incorrect answers
+        if st.session_state[feedback_key] and not st.session_state[correct_key]:
+            if st.button("Try Again", key=f"retry_{index}"):
+                st.session_state[feedback_key] = False
+                st.rerun()
