@@ -12,5 +12,5 @@ def init_gemini():
             "Please set the GOOGLE_API_KEY in your environment variables or Streamlit secrets."
         )
         st.stop()
-    client = genai.Client(api_key="YOUR_API_KEY")
+    client = genai.Client(api_key=api_key)
     return client
