@@ -1,7 +1,7 @@
 import os
 
+import google.generativeai as genai
 import streamlit as st
-from google import genai
 
 
 def init_gemini():
@@ -12,5 +12,5 @@ def init_gemini():
             "Please set the GOOGLE_API_KEY in your environment variables or Streamlit secrets."
         )
         st.stop()
-    client = genai.Client(api_key=api_key)
-    return client
+    genai.configure(api_key=api_key)
+    return genai
