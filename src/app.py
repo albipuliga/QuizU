@@ -95,7 +95,7 @@ def main():
                 # URL-encode the base64 string to ensure it's URL-safe
                 url_safe_encoded = urllib.parse.quote(encoded)
 
-                # Automatically redirect to the Take_Quiz page with the encoded data
+                # Automatically redirect to the Quiz page with the encoded data
                 # Set query parameter separately instead of including it in the path
                 st.query_params.update({"data": url_safe_encoded})
                 st.switch_page("pages/Quiz.py")
