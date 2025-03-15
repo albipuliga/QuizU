@@ -20,15 +20,10 @@ def validate_questions(questions):
 
     required_fields = {"question", "type", "options", "correct_answer"}
 
-    print("Questions:", questions)
-
     for question in questions:
-        print("Question:", question)
-
         if not isinstance(question, dict):
             return False
         if not all(field in question for field in required_fields):
-            print(all(field in question for field in required_fields))
             return False
 
     return True
