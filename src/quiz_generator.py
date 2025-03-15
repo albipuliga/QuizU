@@ -6,25 +6,57 @@ import streamlit as st
 from utils import init_gemini
 
 
-def generate_questions(content: str, num_questions: int = 5) -> List[Dict]:
+def validate_questions(questions):
+    """Function to validate the generated questions.
+
+    Args:
+        questions: List of question dictionaries containing question text, type, options, correct answer.
+
+    Returns:
+        bool: True if all questions are valid, False otherwise.
+    """
+    if not isinstance(questions, list):
+        return False
+
+    required_fields = {"question", "type", "options", "correct_answer"}
+
+    print("Questions:", questions)
+
+    for question in questions:
+        print("Question:", question)
+
+        if not isinstance(question, dict):
+            return False
+        if not all(field in question for field in required_fields):
+            print(all(field in question for field in required_fields))
+            return False
+
+    return True
+
+
+def generate_questions(
+    question_types: List[str], content: str, num_questions: int = 5
+) -> List[Dict]:
     """Generate quiz questions using Gemini AI.
 
     Args:
         content: The text content to generate questions from
         num_questions: Number of questions to generate
+        question_types: List of question types to include (Multiple Choice, True/False)
 
     Returns:
         List of question dictionaries containing question text, type, options,
         correct answer and explanation
     """
+
     client = init_gemini()
-    prompt = f"""Generate {num_questions} quiz questions based on the following content. Include a mix of multiple choice and true/false questions.
+    prompt = f"""Generate {num_questions} quiz questions based on the following content. Please include the following format of questions only: {question_types}.
+    
     For each question, provide:
-    1. The question text
-    2. The type of question (multiple_choice or true_false)
-    3. The possible answers (for multiple choice)
-    4. The correct answer
-    5. An explanation of why the answer is correct
+    1. `question`: The question text
+    2. `type`: The type of question (multiple_choice or true_false)
+    3. `options`: The possible options (for multiple choice)
+    4. `correct_answer`: The correct answer
 
     Return the response as a JSON array of question objects.
     Content: {content}
@@ -33,10 +65,22 @@ def generate_questions(content: str, num_questions: int = 5) -> List[Dict]:
     response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
 
     try:
-        questions = json.loads(response.text)
-        return questions
+        response_text = response.candidates[0].content.parts[0].text
+
+        # Remove the markdown code block markers if present
+        json_str = response_text.replace("```json", "").replace("```", "").strip()
+
+        # Parse the JSON string into a Python object
+        questions = json.loads(json_str)
+
+        if validate_questions(questions):
+            return questions
+        else:
+            print("Generated questions failed validation")
+            return []
+
     except json.JSONDecodeError:
-        st.error("Failed to generate properly formatted questions. Please try again.")
+        print("Failed to generate properly formatted questions. Please try again.")
         return []
 
 

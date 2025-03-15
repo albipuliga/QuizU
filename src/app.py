@@ -22,7 +22,18 @@ def main():
     text_input = st.text_area("Or enter your text directly", height=120)
 
     num_questions = st.number_input(
-        "Number of questions to generate (1-15)", min_value=1, max_value=15, value=5
+        "Number of questions to generate",
+        min_value=1,
+        max_value=15,
+        value=5,
+        help="(Maximum 15)",
+    )
+
+    question_types = st.segmented_control(
+        "Select question type to include",
+        options=["Multiple Choice", "True/False"],
+        selection_mode="multi",
+        default=["Multiple Choice"],
     )
 
     # Process button
@@ -34,7 +45,11 @@ def main():
             return
 
         with st.spinner("Generating quiz questions..."):
-            questions = generate_questions(content, num_questions)
+            questions = generate_questions(
+                question_types,
+                content,
+                num_questions,
+            )
 
         if questions:
             # Display questions
