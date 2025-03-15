@@ -1,43 +1,92 @@
-# QuizU
+# QuizU 📚
 
-QuizU is an AI-powered quiz platform that uses natural language processing (NLP) and machine learning algorithms to generate personalized quizzes for users. The platform allows users to create quizzes, select questions, and receive instant feedback on their answers.
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Streamlit](https://img.shields.io/badge/streamlit-1.22%2B-red)
 
-## Features
-- AI-powered quiz generation
-- User-friendly interface
-- Support for multiple file formats (txt, pdf, docx)
-- Option to enter text directly
-- Customizable number of questions
-- Display of correct answers and explanations
-- Option to save quizzes for future reference
+QuizU is an AI-powered quiz generation platform designed to transform study materials into engaging quizzes. Using Google's Gemini models, QuizU creates personalized quiz questions from your documents or text, making studying more interactive and effective.
 
-## Getting Started
-To get started with QuizU, follow these steps:
+## 🔗 Live Demo
+
+Try QuizU now by following this [link](https://quiz-u.streamlit.app/)!
+
+## ✨ Features
+
+- **AI-Powered Quiz Generation**: Creates customized quizzes based on your study materials
+- **Multiple File Formats**: Upload PDF, DOCX, or TXT files for processing
+- **Direct Text Input**: Paste text directly for quick quiz creation
+- **Question Type Selection**: Choose between Multiple Choice and True/False questions
+- **Interactive Quiz Interface**: Take quizzes with immediate feedback
+- **Progress Tracking**: See your score as you complete questions
+- **Customizable Settings**: Control the number and types of questions
+
+## 💡 How It Works
+
+1. **Upload Materials**: Submit your study documents (PDF, DOCX, or TXT)
+2. **Configure Quiz**: Choose question types and quantity
+3. **Generate Questions**: AI analyzes your content and creates relevant questions
+4. **Take Quiz**: Test your knowledge with the generated quiz
+5. **Get Feedback**: Receive immediate results and explanations
+
+## 🚀 Getting Started
+
+### Online Usage
+
+Visit [https://quiz-u.streamlit.app/](https://quiz-u.streamlit.app/) to use QuizU without installation.
+
+### Local Installation
+
+To run QuizU locally:
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/albertopuliga/QuizU.git
+   cd QuizU
    ```
 
 2. Install the required dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. Set up your Google API key:
-   - Go to the [Google Cloud Console](https://console.cloud.google.com/)
-   - Enable the [Generative AI API](https://console.cloud.google.com/marketplace/product/aiplatform/generative-ai-api)
-   - Create a new API key and save it in a secure location (e.g., `.env` file)
-   - Set the `GOOGLE_API_KEY` environment variable to the API key
+
+   - Create a `.env` file in the project root
+   - Add your Google Generative AI API key:
+     ```
+     GOOGLE_API_KEY=your_api_key_here
+     ```
+   - For instructions on getting an API key, visit [Google AI Studio](https://makersuite.google.com/)
 
 4. Run the application:
    ```bash
    streamlit run src/app.py
    ```
 
-## Usage
-1. Upload your study materials (txt, pdf, docx files)
-2. Enter your text directly
-3. Select the number of questions to generate
-4. Click "Generate Quiz" to generate the quiz questions
-6. Click "Check Answer" to see if your answer is correct
+## 🧩 Use Cases
+
+- **Students**: Transform class notes into quiz questions
+- **Teachers**: Create quick assessments from course materials
+- **Self-learners**: Test comprehension of any subject matter
+- **Study Groups**: Share quizzes based on shared reading materials
+
+## 💻 Technology Stack
+
+- **Frontend & Backend**: Streamlit
+- **AI Generation**: Google Generative AI (Gemini models)
+- **Document Processing**: PyPDF2, python-docx
+
+## 🤝 Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📧 Contact
+
+[Alberto Puliga - Github](https://github.com/albertopuliga)
