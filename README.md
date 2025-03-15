@@ -1,7 +1,10 @@
+<div align="center">
+
 # QuizU 📚
 
-![Python](https://img.shields.io/badge/python-3.9%2B-blue)
-![Streamlit](https://img.shields.io/badge/streamlit-1.22%2B-red)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue) ![Streamlit](https://img.shields.io/badge/streamlit-1.22%2B-red)
+
+</div>
 
 QuizU is an AI-powered quiz generation platform designed to transform study materials into engaging quizzes. Using Google's Gemini models, QuizU creates personalized quiz questions from your documents or text, making studying more interactive and effective.
 
