@@ -1,21 +1,39 @@
+import base64
+import pickle
+import urllib.parse
+
 import streamlit as st
 
 from file_handler import get_content
-from quiz_generator import display_question, generate_questions
+from quiz_generator import generate_questions
 
 
 def main():
-    """Main application entry point."""
+    """Main application entry point for quiz generation."""
     st.set_page_config(page_title="QuizU", page_icon="📚", layout="wide")
-
-    st.title("QuizU 📚")
-    st.html("""
-            <h3>A Streamlit app for generating quiz questions based on your files! 🎯 ✨</h3>
-            """)
 
     # Initialize session state for questions if not already done
     if "quiz_questions" not in st.session_state:
         st.session_state.quiz_questions = []
+
+    # Page header with styled banner
+    st.markdown(
+        """
+    <div style="padding:10px; border-radius:10px">
+        <h1 style="color:white; text-align:center">📚 QuizU</h1>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+    <h3 style="text-align:center">Generate personalized quizzes from your study materials! 🎯 ✨</h3>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("### Materials")
 
     uploaded_files = st.file_uploader(
         "Upload your study materials",
@@ -23,10 +41,12 @@ def main():
         accept_multiple_files=True,
     )
 
-    text_input = st.text_area("Or enter your text directly", height=120)
+    text_input = st.text_area("Or enter your text directly", height=150)
+
+    st.markdown("### Quiz Settings")
 
     num_questions = st.number_input(
-        "Number of questions to generate",
+        "Number of questions",
         min_value=1,
         max_value=15,
         value=5,
@@ -34,18 +54,21 @@ def main():
     )
 
     question_types = st.segmented_control(
-        "Select question type to include",
+        "Question types",
         options=["Multiple Choice", "True/False"],
         selection_mode="multi",
         default=["Multiple Choice"],
     )
 
     if not question_types:
-        st.error("Please select at least one question type")
+        st.warning("Please select at least one question type.")
         return
 
+    st.markdown("---")
+    generate_button = st.button("Generate Quiz", type="primary")
+
     # Process button
-    if st.button("Generate Quiz", type="primary"):
+    if generate_button:
         content = get_content(uploaded_files, text_input)
 
         if not content:
@@ -61,47 +84,23 @@ def main():
 
             # Store questions in session state for persistence
             if questions:
+                # Store in session state
                 st.session_state.quiz_questions = questions
+
+                # Also encode the questions into a base64 string for the URL
+                # This is needed because the session state isn't shared between pages
+                serialized = pickle.dumps(questions)
+                encoded = base64.b64encode(serialized).decode("utf-8")
+
+                # URL-encode the base64 string to ensure it's URL-safe
+                url_safe_encoded = urllib.parse.quote(encoded)
+
+                # Automatically redirect to the Take_Quiz page with the encoded data
+                # Set query parameter separately instead of including it in the path
+                st.query_params.update({"data": url_safe_encoded})
+                st.switch_page("pages/Take_Quiz.py")
             else:
                 st.error("Failed to generate questions. Please try again.")
-                return
-
-    # Always display questions if they exist in session state
-    if st.session_state.quiz_questions:
-        st.markdown("---")
-        st.subheader("Questions")
-
-        # Add quiz progress tracker
-        correct_count = sum(
-            1
-            for i in range(1, len(st.session_state.quiz_questions) + 1)
-            if f"correct_{i}" in st.session_state and st.session_state[f"correct_{i}"]
-        )
-        total_questions = len(st.session_state.quiz_questions)
-
-        # Progress bar and score
-        progress = correct_count / total_questions if total_questions > 0 else 0
-        st.progress(progress)
-        st.write(f"Score: {correct_count}/{total_questions} ({int(progress * 100)}%)")
-
-        # Display all questions
-        for i, question in enumerate(st.session_state.quiz_questions, 1):
-            display_question(i, question)
-
-        if st.button("Reset All Answers"):
-            # Clear only answer-related session state
-            for key in list(st.session_state.keys()):
-                if key.startswith(("answer_", "feedback_", "correct_", "radio_")):
-                    del st.session_state[key]
-            st.rerun()
-
-        if st.button("Clear Quiz", type="primary"):
-            # Clear all quiz-related session state
-            for key in list(st.session_state.keys()):
-                if key.startswith(("answer_", "feedback_", "correct_", "radio_")):
-                    del st.session_state[key]
-            st.session_state.quiz_questions = []
-            st.rerun()
 
 
 if __name__ == "__main__":
