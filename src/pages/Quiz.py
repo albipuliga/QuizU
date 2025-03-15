@@ -99,10 +99,14 @@ def main():
         display_question(i, question)
 
     if st.button("Reset All Answers"):
-        # Clear only answer-related session state
+        # Clear all answer-related session state
         for key in list(st.session_state.keys()):
             if key.startswith(("answer_", "feedback_", "correct_", "radio_")):
                 del st.session_state[key]
+
+        for i in range(1, len(st.session_state.quiz_questions) + 1):
+            st.session_state[f"radio_{i}"] = None
+
         st.rerun()
 
     if st.button("Create New Quiz", type="primary"):
