@@ -98,7 +98,7 @@ def main():
                 # Automatically redirect to the Take_Quiz page with the encoded data
                 # Set query parameter separately instead of including it in the path
                 st.query_params.update({"data": url_safe_encoded})
-                st.switch_page("pages/Take_Quiz.py")
+                st.switch_page("pages/Quiz.py")
             else:
                 st.error("Failed to generate questions. Please try again.")
 
