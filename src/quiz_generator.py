@@ -126,7 +126,9 @@ def display_question(index: int, question: Dict):
             ].lower() in ["true", "false"]:
                 question["correct_answer"] = question["correct_answer"].capitalize()
 
-        selected_answer = st.radio("Select your answer:", options, key=f"radio_{index}")
+        selected_answer = st.radio(
+            "Select your answer:", options, key=f"radio_{index}", index=None
+        )
         st.session_state[answer_key] = selected_answer
 
         # Use a unique key for the button and check if it's pressed
