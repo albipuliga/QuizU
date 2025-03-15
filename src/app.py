@@ -28,7 +28,7 @@ def main():
 
     st.markdown(
         """
-    <h3 style="text-align:center">Generate personalized quizzes from your study materials! 🎯 ✨</h3>
+    <h3 style="text-align:center">Generate personalized quizzes from your study materials! 🎯</h3>
     """,
         unsafe_allow_html=True,
     )
