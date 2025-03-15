@@ -13,6 +13,10 @@ def main():
             <h3>A Streamlit app for generating quiz questions based on your files! 🎯 ✨</h3>
             """)
 
+    # Initialize session state for questions if not already done
+    if "quiz_questions" not in st.session_state:
+        st.session_state.quiz_questions = []
+
     uploaded_files = st.file_uploader(
         "Upload your study materials",
         type=["txt", "pdf", "docx"],
@@ -51,10 +55,25 @@ def main():
                 num_questions,
             )
 
-        if questions:
-            # Display questions
-            for i, question in enumerate(questions, 1):
-                display_question(i, question)
+            # Store questions in session state for persistence
+            if questions:
+                st.session_state.quiz_questions = questions
+            else:
+                st.error("Failed to generate questions. Please try again.")
+                return
+
+    # Always display questions if they exist in session state
+    if st.session_state.quiz_questions:
+        st.subheader("Your Quiz")
+        st.markdown("---")
+
+        for i, question in enumerate(st.session_state.quiz_questions, 1):
+            display_question(i, question)
+
+        # Add option to clear current quiz
+        if st.button("Clear Quiz"):
+            st.session_state.quiz_questions = []
+            st.rerun()
 
 
 if __name__ == "__main__":

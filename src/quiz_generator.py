@@ -18,13 +18,22 @@ def validate_questions(questions):
     if not isinstance(questions, list):
         return False
 
-    required_fields = {"question", "type", "options", "correct_answer"}
-
     for question in questions:
         if not isinstance(question, dict):
             return False
-        if not all(field in question for field in required_fields):
+
+        if (
+            "question" not in question
+            or "type" not in question
+            or "correct_answer" not in question
+        ):
             return False
+
+        if question["type"] == "multiple_choice" and "options" not in question:
+            return False
+
+        if question["type"] == "true_false" and "options" not in question:
+            question["options"] = ["True", "False"]
 
     return True
 
@@ -45,14 +54,22 @@ def generate_questions(
     """
 
     client = init_gemini()
-    prompt = f"""Generate {num_questions} quiz questions based on the following content. Please include the following format of questions only: {question_types}.
+
+    # Map UI options to internal types
+    type_mapping = {"Multiple Choice": "multiple_choice", "True/False": "true_false"}
+    selected_types = [type_mapping[t] for t in question_types]
+
+    prompt = f"""Generate {num_questions} quiz questions based on the following content. Include the following question types: {selected_types}.
     
     For each question, provide:
     1. `question`: The question text
     2. `type`: The type of question (multiple_choice or true_false)
-    3. `options`: The possible options (for multiple choice)
-    4. `correct_answer`: The correct answer
+    3. `options`: For multiple_choice questions, provide an array of 4 options
+    4. `correct_answer`: The correct answer (should be one of the options)
+    5. `explanation`: A brief explanation of why the answer is correct
 
+    For true_false questions, set `correct_answer` to either "True" or "False".
+    
     Return the response as a JSON array of question objects.
     Content: {content}
     """
@@ -65,7 +82,6 @@ def generate_questions(
         # Remove the markdown code block markers if present
         json_str = response_text.replace("```json", "").replace("```", "").strip()
 
-        # Parse the JSON string into a Python object
         questions = json.loads(json_str)
 
         if validate_questions(questions):
@@ -86,21 +102,47 @@ def display_question(index: int, question: Dict):
         index: Question number
         question: Question dictionary containing all question data
     """
-    with st.expander(f"Question {index}"):
+    question_key = f"question_{index}"
+    answer_key = f"answer_{index}"
+    feedback_key = f"feedback_{index}"
+
+    with st.expander(f"Question {index}", expanded=True):
         st.write(question["question"])
 
-        if question["type"] == "multiple_choice":
-            answer = st.radio(
-                "Select your answer:", question["options"], key=f"q_{index}"
-            )
-        else:  # true_false
-            answer = st.radio(
-                "Select your answer:", ["True", "False"], key=f"q_{index}"
-            )
+        # Initialize session state for this question if not already done
+        if answer_key not in st.session_state:
+            st.session_state[answer_key] = None
 
-        if st.button("Check Answer", key=f"check_{index}"):
-            if answer == question["correct_answer"]:
+        if feedback_key not in st.session_state:
+            st.session_state[feedback_key] = False
+
+        if question["type"] == "multiple_choice":
+            options = question["options"]
+        else:  # true_false
+            options = question.get("options", ["True", "False"])
+            # Convert correct_answer to proper case for True/False
+            if isinstance(question["correct_answer"], str) and question[
+                "correct_answer"
+            ].lower() in ["true", "false"]:
+                question["correct_answer"] = question["correct_answer"].capitalize()
+
+        selected_answer = st.radio("Select your answer:", options, key=f"radio_{index}")
+        st.session_state[answer_key] = selected_answer
+
+        # Use a unique key for the button and check if it's pressed
+        button_key = f"check_button_{index}"
+        if st.button("Check Answer", key=button_key):
+            st.session_state[feedback_key] = True
+
+        # Display feedback if button was pressed
+        if st.session_state[feedback_key]:
+            if st.session_state[answer_key] == question["correct_answer"]:
                 st.success("Correct! 🎉")
             else:
-                st.error("Incorrect. Try again!")
-            st.write(f"Explanation: {question['explanation']}")
+                st.error(f"The correct answer is: {question['correct_answer']}")
+
+            # Show explanation if it exists
+            if "explanation" in question:
+                st.write(f"Explanation: {question['explanation']}")
+            else:
+                st.write("No explanation provided.")
