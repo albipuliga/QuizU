@@ -96,8 +96,9 @@ def generate_questions(
     ]
 
     try:
+        # @param ["gemini-1.5-flash-latest","gemini-2.0-flash-lite"]
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-2.0-flash-lite",
             generation_config=generation_config,
             safety_settings=safety_settings,
         )
